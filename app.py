@@ -60,7 +60,7 @@ class SimpleForm(FlaskForm):
     
 
 
-@app.route('/credit/<id_client>', methods=['GET'])
+@app.route('/<id_client>', methods=['GET'])
 def credit(id_client):
     print("dataframe")
     FILE_TEST_SET = 'test_set.pickle'
