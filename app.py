@@ -36,7 +36,7 @@ class SimpleForm(FlaskForm):
         return Message
 
 
-    @app.route("/prediction", methods=['GET', 'POST'])    
+    @app.route("/predict/<id_client>", methods=['GET', 'POST'])    
     def form():
         form = SimpleForm(request.form)
         print(form.errors)
@@ -44,7 +44,7 @@ class SimpleForm(FlaskForm):
         if request.method == 'POST':
             form_id=request.form['id']
             print(form_id)
-            return(redirect('prediction/'+form_id)) 
+            return(redirect('predict/'+form_id)) 
     
         if form.validate():
             # Save the comment here.
@@ -57,23 +57,31 @@ class SimpleForm(FlaskForm):
 
 
 
-    
-
-
-@app.route('/<id_client>', methods=['GET'])
+@app.route('/<id_client>', methods=['GET', 'POST'])
 def credit(id_client):
     print("dataframe")
     FILE_TEST_SET = 'test_set.pickle'
     with open(FILE_TEST_SET, 'rb') as df_test_set:
         dataframe = pickle.load(df_test_set)
        
-    prediction, proba = predict_flask(id_client, dataframe)
-    dict_final = {
-        'prediction' : int(prediction),
-        'probabilité' : float(proba[0][0])
-        }
 
-    print('Nouvelle Prédiction : \n', dict_final)
+
+    try:
+        prediction, proba = predict_flask(id_client, dataframe)
+        dict_final = {
+        'Vous avez demandé le client:' :int(id_client),
+        'prédiction' : int(prediction),
+        'probabilité' : float(proba[0][0])
+        }       
+    except ValueError:
+
+        dict_final = {
+        'Vous avez demandé le client:' :int(id_client),
+        'prédiction' : '-',
+        'probabilité' : '-'
+        }
+        Message="Ce client n'existe pas dans la BD, merci d'en choisir un autre"
+        return Message
 
     return jsonify(dict_final)
 
@@ -82,10 +90,9 @@ def predict_flask(ID, dataframe):
     '''Fonction de prédiction utilisée par l\'API flask :
     a partir de l'identifiant et du jeu de données
     renvoie la prédiction à partir du modèle'''
-
+    print(dataframe)
     ID = int(ID)
     X = dataframe[dataframe['SK_ID_CURR'] == ID]
-
     X = X.drop(['SK_ID_CURR'], axis=1)
     proba = model.predict_proba(X)
     print(proba)
