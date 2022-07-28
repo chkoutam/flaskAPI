@@ -3,3 +3,4 @@ Flask_WTF==1.0.1
 pandas==1.4.2
 WTForms==2.3.0
 gunicorn
+lightgbm
